@@ -20,16 +20,29 @@ public class InventoryItemService {
     }
 
     public InventoryItem saveItem(InventoryItem item) {
-        return repository.save(item);
+        return repository.findByItemNameAndCategoryIgnoreCase(item.getItemName(), item.getCategory())
+                .map(existingItem -> {
+                    existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                    existingItem.setExpiryDate(item.getExpiryDate());
+                    existingItem.setPerishable(item.isPerishable());
+                    existingItem.setDamaged(item.isDamaged());
+                    existingItem.setSku(item.getSku());
+                    return repository.save(existingItem);
+                })
+                .orElseGet(() -> repository.save(item));
+    }
+
+    public List<InventoryItem> saveAll(List<InventoryItem> items) {
+        for (InventoryItem item : items) {
+            saveItem(item);
+        }
+        return repository.findAll();
     }
 
     public void deleteItem(Long id) {
         repository.deleteById(id);
     }
 
-    public List<InventoryItem> saveAll(List<InventoryItem> items) {
-        return repository.saveAll(items);
-    }
     public InventoryItem updateItem(Long id, InventoryItem updatedItem) {
         return repository.findById(id).map(item -> {
             item.setItemName(updatedItem.getItemName());
@@ -42,5 +55,4 @@ public class InventoryItemService {
             return repository.save(item);
         }).orElseThrow(() -> new RuntimeException("Item not found with id " + id));
     }
-
 }
