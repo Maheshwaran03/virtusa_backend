@@ -2,6 +2,7 @@ package com.example.inventory.service;
 
 import com.example.inventory.model.InventoryItem;
 import com.example.inventory.repository.InventoryItemRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,14 +21,22 @@ public class InventoryItemService {
     }
 
     public InventoryItem saveItem(InventoryItem item) {
-        return repository.findByItemNameAndCategoryIgnoreCase(item.getItemName(), item.getCategory())
-                .map(existingItem -> {
-                    existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
-                    existingItem.setExpiryDate(item.getExpiryDate());
-                    existingItem.setPerishable(item.isPerishable());
-                    existingItem.setDamaged(item.isDamaged());
-                    existingItem.setSku(item.getSku());
-                    return repository.save(existingItem);
+        List<InventoryItem> all = repository.findAll();
+        for (InventoryItem i : all) {
+            if (i.getSku().equalsIgnoreCase(item.getSku()) &&
+                    !i.getItemName().equalsIgnoreCase(item.getItemName())) {
+                throw new DataIntegrityViolationException("SKU already used by another item name");
+            }
+        }
+
+        return repository.findByNameSkuAndBatchIgnoreCase(item.getItemName(), item.getSku(), item.getBatch())
+                .map(existing -> {
+                    existing.setQuantity(existing.getQuantity() + item.getQuantity());
+                    existing.setDamaged(existing.getDamaged() + item.getDamaged());
+                    existing.setExpiryDate(item.getExpiryDate());
+                    existing.setCategory(item.getCategory());
+                    existing.setPerishable(item.isPerishable());
+                    return repository.save(existing);
                 })
                 .orElseGet(() -> repository.save(item));
     }
@@ -48,11 +57,15 @@ public class InventoryItemService {
             item.setItemName(updatedItem.getItemName());
             item.setSku(updatedItem.getSku());
             item.setCategory(updatedItem.getCategory());
+            item.setBatch(updatedItem.getBatch());
             item.setQuantity(updatedItem.getQuantity());
             item.setExpiryDate(updatedItem.getExpiryDate());
             item.setPerishable(updatedItem.isPerishable());
-            item.setDamaged(updatedItem.isDamaged());
+            item.setDamaged(updatedItem.getDamaged());
             return repository.save(item);
-        }).orElseThrow(() -> new RuntimeException("Item not found with id " + id));
+        }).orElseThrow(() -> new RuntimeException("Item not found with ID " + id));
+    }
+    public List<String> getDistinctCategories() {
+        return repository.findDistinctCategories();
     }
 }

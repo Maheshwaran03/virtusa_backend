@@ -2,6 +2,8 @@ package com.example.inventory.controller;
 
 import com.example.inventory.service.InventoryUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
@@ -13,12 +15,14 @@ public class InventoryLoginController {
     private InventoryUserService service;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         boolean success = service.login(request.getUsername(), request.getPassword());
+
         if (success) {
-            return "Login successful";
+            return ResponseEntity.ok().body("Login successful");
         } else {
-            throw new RuntimeException("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid credentials");
         }
     }
 

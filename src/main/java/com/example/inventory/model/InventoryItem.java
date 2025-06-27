@@ -8,18 +8,23 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "inventory_item")
+@Table(
+        name = "inventory_item",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"item_name", "sku", "batch"})
+)
 public class InventoryItem {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "item_name")
+    @Column(name = "item_name", nullable = false)
     private String itemName;
 
+    @Column(nullable = false)
     private String sku;
+
     private String category;
+    private String batch;
     private int quantity;
 
     @Column(name = "expiry_date")
@@ -29,5 +34,5 @@ public class InventoryItem {
     private boolean isPerishable;
 
     @Column(name = "is_damaged")
-    private boolean isDamaged;
+    private int damaged;
 }
