@@ -1,5 +1,5 @@
 package com.example.inventory.model;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +31,7 @@ public class InventoryItem {
     private String expiryDate;
 
     @Column(name = "is_perishable")
+    @JsonProperty("isPerishable")
     private boolean isPerishable;
 
     @Column(name = "is_damaged")
