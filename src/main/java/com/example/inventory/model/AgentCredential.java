@@ -1,8 +1,8 @@
 package com.example.inventory.model;
+import java.util.Date;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 @Entity
 @Table(name = "agent_credential", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 @Data
@@ -22,4 +22,20 @@ public class AgentCredential {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String mobileNumber;
+
+    @Temporal(TemporalType.DATE)
+    @Column(nullable = false)
+    private Date joinedOn;
+
+    @PrePersist
+    @Column(name = "joined_on")
+
+    protected void onCreate() {
+        if (this.joinedOn == null) {
+            this.joinedOn = new Date();
+        }
+    }
 }

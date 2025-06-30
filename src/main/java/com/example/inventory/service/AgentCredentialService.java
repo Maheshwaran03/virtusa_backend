@@ -28,6 +28,9 @@ public class AgentCredentialService {
         response.put("message", "Registered");
         response.put("email", saved.getEmail());
         response.put("name", saved.getName());
+        response.put("mobileNumber", saved.getMobileNumber());
+        response.put("joinedOn", saved.getJoinedOn());
+
         return response;
     }
 
@@ -37,5 +40,13 @@ public class AgentCredentialService {
 
     public boolean checkPassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+    public AgentCredential save(AgentCredential agent) {
+        return repo.save(agent);
+    }
+
+    public List<AgentCredential> getAllAgents() {
+        return repo.findAll();
     }
 }

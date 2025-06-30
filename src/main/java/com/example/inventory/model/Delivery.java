@@ -42,4 +42,6 @@ public class Delivery {
     public void setSignatureBase64(String signatureBase64) {
         this.signatureBase64 = signatureBase64;
     }
+    private String agentEmail; // Add this line if not already present
+
 }

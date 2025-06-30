@@ -1,6 +1,7 @@
 package com.example.inventory.controller;
 
 import com.example.inventory.model.AgentCredential;
+import com.example.inventory.repository.DeliveryRepository;
 import com.example.inventory.service.AgentCredentialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -15,6 +16,9 @@ public class AgentCredentialController {
 
     @Autowired
     private AgentCredentialService service;
+
+    @Autowired
+    private DeliveryRepository deliveryRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AgentCredential agent) {
@@ -41,5 +45,63 @@ public class AgentCredentialController {
                 "email", agent.getEmail(),
                 "name", agent.getName()
         ));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@RequestParam String email) {
+        AgentCredential agent = service.getByEmail(email);
+        if (agent == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Agent not found"));
+        }
+
+        int count = deliveryRepository.countByAgentEmail(agent.getEmail());
+
+        Map<String, Object> profile = new HashMap<>();
+        profile.put("name", agent.getName());
+        profile.put("email", agent.getEmail());
+        profile.put("phone", agent.getMobileNumber());
+        profile.put("joined", agent.getJoinedOn());
+        profile.put("deliveriesMade", count);
+
+        return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @RequestParam String email,
+            @RequestBody Map<String, String> updates
+    ) {
+        AgentCredential agent = service.getByEmail(email);
+        if (agent == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Agent not found"));
+        }
+
+        if (updates.containsKey("name")) {
+            agent.setName(updates.get("name"));
+        }
+        if (updates.containsKey("mobileNumber")) {
+            agent.setMobileNumber(updates.get("mobileNumber"));
+        }
+
+        AgentCredential updated = service.save(agent);
+        return ResponseEntity.ok(Map.of("message", "Profile updated", "agent", updated));
+    }
+
+    // ✅ Return only needed agent info (name, email) to frontend
+    @GetMapping("/agents")
+    public ResponseEntity<?> getAllAgents() {
+        List<AgentCredential> agents = service.getAllAgents();
+
+        List<Map<String, String>> result = new ArrayList<>();
+        for (AgentCredential a : agents) {
+            Map<String, String> map = new HashMap<>();
+            map.put("name", a.getName());
+            map.put("email", a.getEmail());
+            result.add(map);
+        }
+
+        return ResponseEntity.ok(result);
     }
 }
